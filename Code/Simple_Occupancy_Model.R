@@ -135,73 +135,53 @@ aic # View the aic
 # Step 4 - Get Occupancy and Detection Probabilities ####
 #-------------------------------------------------------#
 
-# Get the estimate for normal occupancy
-backTransform( # The backtransformation function
-  linearComb(site, # The model
-             coefficients = c(1,0), # First coefficient
-             "state") # Occupancy
-)
-
-# Create the estimates and 95% intervals
-occ <- data.frame(
-  parameter = "Occupancy_1",
-  estimate = 0.498, # Mean estimate
-  lower = 0.498 - 1.96 * 0.075, # 95% lower = Mean - 1.96 * SE
-  upper = 0.498 + 1.96 * 0.075 # 95% upper = Mean + 1.96 * SE
-)
-
-# Get estimate for occupancy at cov1 mean
-backTransform(
-  linearComb(site, 
-             coefficients = c(1,1), # Second coefficient
-             "state")
-)
-
-# Create the estimates and 95% intervals
-occ1 <- data.frame(
-  parameter = "Occupancy_cov1",
-  estimate = 0.925, # Mean estimate
-  lower = 0.925 - 1.96 * 0.0367, # 95% lower 
-  upper = 0.925 + 1.96 * 0.0367 # 95% upper
-)
+# Estimate occupancy using prediction
+occ <- predict(site, type = "state")
+occ$cov1 <- data$cov1 # Add the values for covariates
+occ$site <- data$site # Add site variable
+head(occ) # View
 
 # Get detection estimate
-  # We don't need the Linear combination function because we are not using a 
-  # covariate for survey in this model
 backTransform(site, type = "det")
 
-# Create estimates and 95% intervals
-det <- data.frame(
-  parameter = "Detection_1",
-  estimate = 0.502,
-  lower = 0.502 - 1.96 * 0.024,
-  upper = 0.502 + 1.96 * 0.024
-)
+#-------------------------------------------------------#
+# Step 5 - Plot your occupancy estimates graphically ####
+#-------------------------------------------------------#
 
-# Combine all those estimates
-param_est <- do.call(rbind, list(occ, occ1, det))
-param_est # View
-
-#---------------------------------------------#
-# Step 5 - Plot your estimates graphically ####
-#---------------------------------------------#
-
-# Using ggplot this time
-ggplot(data = param_est, # Data
-       mapping = aes(x = parameter, # X-axis is parameter
-                     y = estimate)) + # Y-axis is the mean estimate
-  geom_point(size = 2) + # Points
-  geom_errorbar( # Errorbars
+# Using ggplot to plot covariate effect
+ggplot(data = occ, # Data
+       mapping = aes(x = cov1, # X-axis is parameter
+                     y = Predicted)) + # Y-axis is mean estimate
+  geom_line(color = "darkgreen") + # Line
+  geom_ribbon( # Shading
     mapping = aes(ymin = lower, # 95% Lower
                   ymax = upper), # 95% Upper
-    width = 0.2, # Width of horizontal bars
+    alpha = 0.5, # Width of horizontal bars
+    fill = "darkgreen", # Color the ribbon
     linewidth = 1) + # Width of the lines themselves
   theme_bw() + # Black and white theme
-  labs(x = "Parameter", # X-axis label
-       y = "Probability", # Y-axis label
-       title = "Probability of Detection and Occupancy") + # Title the plot
+  labs(x = "Covariate 1 Value", # X-axis label
+       y = "Probability of Occupancy") + # Y-axis title
   theme(axis.title.y = element_text(margin = margin(r = 10)), # Space Y title
         axis.title.x = element_text(margin = margin(t = 10))) # Space X title
+
+# Plot by site
+ggplot(data = occ[1:50,], # 1st 50 sites
+       mapping = aes(x = site, # X-axis is parameter
+                     y = Predicted)) + # Y-axis is mean estimate
+  geom_point(color = "darkgreen") + # Line
+  geom_errorbar( # Shading
+    mapping = aes(ymin = lower, # 95% Lower
+                  ymax = upper), # 95% Upper
+    alpha = 0.5, # Width of horizontal bars
+    color = "darkgreen", # Color the ribbon
+    linewidth = 1) + # Width of the lines themselves
+  theme_bw() + # Black and white theme
+  labs(x = "Site Number", # X-axis label
+       y = "Probability of Occupancy") + # Y-axis title
+  theme(axis.title.y = element_text(margin = margin(r = 10)), # Space Y title
+        axis.title.x = element_text(margin = margin(t = 10)), # Space X title
+        axis.text.x = element_text(angle = 90)) # Angle the sites
 
 
 #--------------------------------------------------------#
