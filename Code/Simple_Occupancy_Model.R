@@ -160,7 +160,7 @@ ggplot(data = occ, # Data
     fill = "darkgreen", # Color the ribbon
     linewidth = 1) + # Width of the lines themselves
   theme_bw() + # Black and white theme
-  labs(x = "Covariate 1 Value", # X-axis label
+  labs(x = "Percentage Canopy Cover", # X-axis label
        y = "Probability of Occupancy") + # Y-axis title
   theme(axis.title.y = element_text(margin = margin(r = 10)), # Space Y title
         axis.title.x = element_text(margin = margin(t = 10))) # Space X title
