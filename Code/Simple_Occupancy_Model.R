@@ -9,7 +9,7 @@
 #-----------------#
 
 # Install packages
-install.packages(c("unmarked", "ggplot2", "MuMIn"))
+install.packages(c("unmarked", "ggplot2", "MuMIn", "glmmTMB"))
 
 # Load the packages
 library(unmarked)
@@ -17,10 +17,10 @@ library(ggplot2)
 library(MuMIn)
 
 # Load the data
-data <- read_csv("./Data/Sample_Data.csv")
+data <- read.csv("./Data/Sample_Data.csv")
 
 # View the head of the data
-head(dat)
+head(data)
 
 #-----------------------------------------------------#
 # Step 1 - Set up the dataframe in unmarked format ####
@@ -32,7 +32,7 @@ det <- data[, 2:5]
 # Site covariates
   # These are covariates that are intrinsic to the site and don't change
   # between surveys. Examples would be:
-  # Slope, Aspect, Landcover
+  # Slope, Aspect, Elevation
 site_covs <- data[, 6:8]
 
 # Survey covariates
@@ -99,6 +99,38 @@ aic_MuMIn # View
 # View the top model summary
 summary(site)
 
+# NOTE FOR GRADUATE STUDENTS:
+# Unmarked models are supported by MuMIn. You can run the dredge on them to run
+# all possible combinations of your covariates. Here is code to do it. 
+# It takes forever if you have a lot of covariates.
+
+# Create the global model
+global <- occu(formula = ~ surv
+                         ~ cov1 + cov2 + cov3,
+               data = umf)
+
+# Dredge
+aic <- dredge(global)
+aic # View the aic 
+
+# View the dredge function and its arguments if needed
+#?dredge
+
+# CAUTION:
+# Depending on your study design, the dredge may violate your design. If you are
+# doing a priori model sets, this is a violation of that method. This is used 
+# for exploratory analysis or for finding the absolute best model of everything.
+# This method is highly criticized in the paper that is the gold standard for
+# model selection. Here is the quote from it:
+
+#"“Let the computer find out” is a poor strategy and usually reflects the fact
+# that the researcher did not bother to think clearly about the problem of 
+# interest and its scientific setting (Burnham and Anderson, 2002)."
+
+# Only use the dredge if you have solid backing and reasoning to do it. 
+# If you think about your question in detail and get to the heart of what you
+# actually need/want to answer, you likely will not need this approach at all.
+
 #-------------------------------------------------------#
 # Step 4 - Get Occupancy and Detection Probabilities ####
 #-------------------------------------------------------#
@@ -114,8 +146,8 @@ backTransform( # The backtransformation function
 occ <- data.frame(
   parameter = "Occupancy_1",
   estimate = 0.498, # Mean estimate
-  lower = 0.498 - 1.96 * 0.075, # 95% lower
-  upper = 0.498 + 1.96 * 0.075 # 95% upper
+  lower = 0.498 - 1.96 * 0.075, # 95% lower = Mean - 1.96 * SE
+  upper = 0.498 + 1.96 * 0.075 # 95% upper = Mean + 1.96 * SE
 )
 
 # Get estimate for occupancy at cov1 mean
@@ -129,7 +161,7 @@ backTransform(
 occ1 <- data.frame(
   parameter = "Occupancy_cov1",
   estimate = 0.925, # Mean estimate
-  lower = 0.925 - 1.96 * 0.0367, # 95% lower
+  lower = 0.925 - 1.96 * 0.0367, # 95% lower 
   upper = 0.925 + 1.96 * 0.0367 # 95% upper
 )
 
@@ -178,4 +210,9 @@ ggplot(data = param_est, # Data
 
 # These can be way way more complicated than this. This is just a simple model.
 # Unmarked can do many different models including the N-mixture to estimate 
-# abundance rather than occupancy.
+# abundance rather than occupancy. This package is great because it does 
+# everything within R itself rather than another program. Another package is 
+# RPresence but it uses a software called PRESENCE in the background similar to
+# RMark and Mark. I would say unmarked and RPresence each have pros and cons. 
+# Whichever you find to be more intuitive is probably the way to go. There was
+# a graduate class through USGS and the Co-op for RPresence which was great. 
