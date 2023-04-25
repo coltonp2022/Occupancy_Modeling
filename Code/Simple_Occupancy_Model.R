@@ -166,7 +166,7 @@ ggplot(data = occ, # Data
         axis.title.x = element_text(margin = margin(t = 10))) # Space X title
 
 # Plot by site
-ggplot(data = occ[1:50,], # 1st 50 sites
+ggplot(data = occ, # Data
        mapping = aes(x = site, # X-axis is parameter
                      y = Predicted)) + # Y-axis is mean estimate
   geom_point(color = "darkgreen") + # Line
@@ -177,11 +177,11 @@ ggplot(data = occ[1:50,], # 1st 50 sites
     color = "darkgreen", # Color the ribbon
     linewidth = 1) + # Width of the lines themselves
   theme_bw() + # Black and white theme
+  geom_hline(aes(yintercept = 1)) + # Put an intercept at 1
   labs(x = "Site Number", # X-axis label
        y = "Probability of Occupancy") + # Y-axis title
   theme(axis.title.y = element_text(margin = margin(r = 10)), # Space Y title
-        axis.title.x = element_text(margin = margin(t = 10)), # Space X title
-        axis.text.x = element_text(angle = 90)) # Angle the sites
+        axis.title.x = element_text(margin = margin(t = 10))) # Space X title
 
 
 #--------------------------------------------------------#
